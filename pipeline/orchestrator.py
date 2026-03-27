@@ -3,7 +3,7 @@ from parser.parse_results import parse_results
 from db.models import store_finding
 
 def run_pipeline(pth):
-    """Run the full security pipeline: scan → parse → store."""
+    """kicks off the full scan pipeline on a given path"""
     print(f"[START] scanning: {pth}")
 
     raw = run_scan(pth)

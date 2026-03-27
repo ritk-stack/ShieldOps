@@ -1,5 +1,5 @@
 def parse_results(raw):
-    """Normalize raw Bandit output into structured findings."""
+    """takes raw bandit json and pulls out the useful bits"""
     out = []
     for r in raw:
         if isinstance(r, dict):

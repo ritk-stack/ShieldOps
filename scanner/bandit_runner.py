@@ -3,7 +3,7 @@ import json as js
 import os
 
 def run_scan(pth):
-    """Run Bandit security scanner on the given path via subprocess."""
+    """runs bandit on target path, returns list of findings"""
     if not os.path.exists(pth):
         return []
 
