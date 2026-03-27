@@ -1,14 +1,19 @@
-from scanner.bandit_runner import scn
-from parser.parse_results import prs
-from db.models import ins
+from scanner.bandit_runner import run_scan
+from parser.parse_results import parse_results
+from db.models import store_finding
 
-def rn(pth):
+def run_pipeline(pth):
+    """Run the full security pipeline: scan → parse → store."""
     print(f"[START] scanning: {pth}")
-    rm = scn(pth)
-    print(f"[SCAN DONE] found {len(rm)} raw issues")
-    cl = prs(rm)
-    print(f"[PARSED] {len(cl)} filtered issues")
-    for v in cl:
-        ins(v["fl"], v["msg"], v["sv"], v.get("ln", 0), v.get("tid", ""))
-    print(f"[STORED] {len(cl)} issues saved")
-    return len(cl)
+
+    raw = run_scan(pth)
+    print(f"[SCAN DONE] found {len(raw)} raw issues")
+
+    findings = parse_results(raw)
+    print(f"[PARSED] {len(findings)} filtered issues")
+
+    for f in findings:
+        store_finding(f["fl"], f["msg"], f["sv"], f.get("ln", 0), f.get("tid", ""))
+
+    print(f"[STORED] {len(findings)} issues saved")
+    return len(findings)

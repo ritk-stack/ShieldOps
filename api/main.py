@@ -1,33 +1,36 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from pipeline.orchestrator import rn
-from db.models import init, fct
+from pipeline.orchestrator import run_pipeline
+from db.models import init, fetch_all
 
-app = FastAPI()
+app = FastAPI(title="ShieldOps", description="Security Pipeline Orchestrator API")
 
 @app.get("/")
-def rt():
+def root():
     return {"msg": "ShieldOps API"}
 
-class Rq(BaseModel):
+class ScanRequest(BaseModel):
     pth: str
 
 @app.on_event("startup")
-def st():
+def startup():
+    """Initialize database on server start."""
     init()
 
 @app.post("/scan")
-def dscn(rq: Rq):
-    n = rn(rq.pth)
+def trigger_scan(req: ScanRequest):
+    """Trigger a security scan on the given path."""
+    n = run_pipeline(req.pth)
     return {
         "status": "completed",
         "issues_found": n,
-        "path": rq.pth
+        "path": req.pth
     }
 
 @app.get("/results")
-def gr():
-    rs = fct()
+def get_results():
+    """Return all stored findings with full detail."""
+    rs = fetch_all()
     return [
         {
             "id": r[0],
@@ -42,8 +45,9 @@ def gr():
     ]
 
 @app.get("/results/high")
-def gr_high():
-    rs = fct()
+def get_high_severity():
+    """Return only HIGH severity findings."""
+    rs = fetch_all()
     return [
         {
             "id": r[0],
@@ -58,12 +62,14 @@ def gr_high():
     ]
 
 @app.get("/count")
-def cnt():
-    return {"total": len(fct())}
+def get_count():
+    """Return total number of findings."""
+    return {"total": len(fetch_all())}
 
 @app.get("/summary")
-def sm():
-    rs = fct()
+def get_summary():
+    """Return aggregated risk dashboard."""
+    rs = fetch_all()
     ct = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
     fls = set()
     for r in rs:
@@ -79,5 +85,6 @@ def sm():
     }
 
 @app.get("/health")
-def hlth():
+def health():
+    """Service health check."""
     return {"status": "ok", "service": "ShieldOps"}

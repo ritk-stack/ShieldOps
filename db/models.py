@@ -1,10 +1,11 @@
 import sqlite3 as sq3
 from datetime import datetime as dt
 
-db = "shld_v2.db"
+DB_PATH = "shld_v2.db"
 
 def init():
-    with sq3.connect(db) as cx:
+    """Create the findings table if it doesn't exist."""
+    with sq3.connect(DB_PATH) as cx:
         cx.execute('''
             CREATE TABLE IF NOT EXISTS res (
                 id INTEGER PRIMARY KEY,
@@ -17,13 +18,15 @@ def init():
             )
         ''')
 
-def ins(fl, msg, sv, ln=0, tid=""):
-    with sq3.connect(db) as cx:
+def store_finding(fl, msg, sv, ln=0, tid=""):
+    """Insert a single security finding into the database."""
+    with sq3.connect(DB_PATH) as cx:
         cx.execute(
             "INSERT INTO res (fl, msg, sv, ts, ln, tid) VALUES (?, ?, ?, ?, ?, ?)",
             (fl, msg, sv, dt.now().isoformat(), ln, tid)
         )
 
-def fct():
-    with sq3.connect(db) as cx:
+def fetch_all():
+    """Retrieve all stored findings."""
+    with sq3.connect(DB_PATH) as cx:
         return cx.execute("SELECT * FROM res").fetchall()
